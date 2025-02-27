@@ -37,20 +37,27 @@ class py2C_dlib():
         DTYPE = "void" 
         if key in func.__annotations__:
             argtype = func.__annotations__[key]
-            if argtype is None: return DTYPE
+            if argtype is None: 
+                print("returing None")
+                return DTYPE
             try:
                 if issubclass(argtype,ctypes.Structure):
                     DTYPE = f"struct {argtype.__name__}" 
                     if hasattr(argtype,"typedef"):
-                        if argtype.typedef:DTYPE = argtype.__name__
+                        if argtype.typedef:
+                            DTYPE = argtype.__name__
 
                     if hasattr(argtype,"pointer"):
                         if argtype.pointer:
                             DTYPE = f"struct {argtype}*"
                             if hasattr(argtype,"typedef"):
-                                if argtype.typedef:DTYPE = f"{argtype.__name__}*"
-                    #STRUCT but NOT A POINTER  
+                                if argtype.typedef:
+                                    DTYPE = f"{argtype.__name__}*"
+                    return DTYPE
+                    #STRUCT but NOT A POINTER
             except TypeError:
+                pass
+            finally:
                 if argtype in py2C_dtypes.py_dtypes:
                     DTYPE = py2C_dtypes.py_dtypes[argtype]
                 else:raise TypeError(f"Data type {argtype} not defined in dllexport")
@@ -92,7 +99,9 @@ class py2C_dlib():
     def get_C_rettype(func,key):
         DTYPE = None
         if key in func.__annotations__:
-            if func.__annotations__[key] is None:return DTYPE
+            if func.__annotations__[key] is None:
+                print("returing None")
+                return DTYPE
             elif issubclass(func.__annotations__[key],ctypes.Structure):
                 DTYPE = func.__annotations__[key]
                 if hasattr(func.__annotations__[key],"pointer"):
