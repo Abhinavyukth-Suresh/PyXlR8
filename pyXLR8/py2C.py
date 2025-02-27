@@ -38,7 +38,6 @@ class py2C_dlib():
         if key in func.__annotations__:
             argtype = func.__annotations__[key]
             if argtype is None: 
-                print("returing None")
                 return DTYPE
             try:
                 if issubclass(argtype,ctypes.Structure):
@@ -100,7 +99,6 @@ class py2C_dlib():
         DTYPE = None
         if key in func.__annotations__:
             if func.__annotations__[key] is None:
-                print("returing None")
                 return DTYPE
             elif issubclass(func.__annotations__[key],ctypes.Structure):
                 DTYPE = func.__annotations__[key]
