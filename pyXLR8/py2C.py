@@ -37,21 +37,23 @@ class py2C_dlib():
         DTYPE = "void" 
         if key in func.__annotations__:
             argtype = func.__annotations__[key]
-            if issubclass(argtype,ctypes.Structure):
-                DTYPE = f"struct {argtype.__name__}" 
-                if hasattr(argtype,"typedef"):
-                    if argtype.typedef:DTYPE = argtype.__name__
+            if argtype is None: return DTYPE
+            try:
+                if issubclass(argtype,ctypes.Structure):
+                    DTYPE = f"struct {argtype.__name__}" 
+                    if hasattr(argtype,"typedef"):
+                        if argtype.typedef:DTYPE = argtype.__name__
 
-                if hasattr(argtype,"pointer"):
-                    if argtype.pointer:
-                        DTYPE = f"struct {argtype}*"
-                        if hasattr(argtype,"typedef"):
-                            if argtype.typedef:DTYPE = f"{argtype.__name__}*"
-                            
-                #STRUCT but NOT A POINTER  
-            elif argtype in py2C_dtypes.py_dtypes:
-                DTYPE = py2C_dtypes.py_dtypes[argtype]
-            else:raise TypeError(f"Data type {argtype} not defined in dllexport")
+                    if hasattr(argtype,"pointer"):
+                        if argtype.pointer:
+                            DTYPE = f"struct {argtype}*"
+                            if hasattr(argtype,"typedef"):
+                                if argtype.typedef:DTYPE = f"{argtype.__name__}*"
+                    #STRUCT but NOT A POINTER  
+            except TypeError:
+                if argtype in py2C_dtypes.py_dtypes:
+                    DTYPE = py2C_dtypes.py_dtypes[argtype]
+                else:raise TypeError(f"Data type {argtype} not defined in dllexport")
         return DTYPE
     
     def get_argtype(func,key):
@@ -90,7 +92,8 @@ class py2C_dlib():
     def get_C_rettype(func,key):
         DTYPE = None
         if key in func.__annotations__:
-            if issubclass(func.__annotations__[key],ctypes.Structure):
+            if func.__annotations__[key] is None:return DTYPE
+            elif issubclass(func.__annotations__[key],ctypes.Structure):
                 DTYPE = func.__annotations__[key]
                 if hasattr(func.__annotations__[key],"pointer"):
                     if func.__annotations__[key].pointer: DTYPE = ctypes.POINTER(func.__annotations__[key])
@@ -130,6 +133,16 @@ class py2C_dlib():
         py2C_dlib.FUNC_ATTR[PY_FUNC_NAME] = (CDLL_ARGS,CDLL_RESTYPE)
         py2C_dlib.Fcount+=1
 
+    def get_code(auto_func_def=False):
+        headers = "\n".join(py2C_dlib.HEADERS)
+        func_defs = "\n".join(py2C_dlib.FUNC_DEFS)
+        globals_ = "\n".join(py2C_dlib.GLOBALS)
+        if auto_func_def:
+            write_data = f"{headers}\n{func_defs}\n{globals_}"
+        else:
+            write_data = f"{headers}\n{globals_}"
+        return  write_data
+    
     def compile(_name_space_,auto_func_def=False,**kwargs):
         __flags__ = py2C_dlib.compiler_flags
         if "flags" in kwargs:
