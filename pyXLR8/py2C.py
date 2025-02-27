@@ -52,14 +52,16 @@ class py2C_dlib():
                             if hasattr(argtype,"typedef"):
                                 if argtype.typedef:
                                     DTYPE = f"{argtype.__name__}*"
+                    print("struct ::", DTYPE)
                     return DTYPE
                     #STRUCT but NOT A POINTER
-            except TypeError:
-                pass
-            finally:
-                if argtype in py2C_dtypes.py_dtypes:
+                elif argtype in py2C_dtypes.py_dtypes:
                     DTYPE = py2C_dtypes.py_dtypes[argtype]
-                else:raise TypeError(f"Data type {argtype} not defined in dllexport")
+                else: raise TypeError(f"Data type {argtype} not defined in dllexport")
+
+            except TypeError as e:
+                raise TypeError(e)
+                
         return DTYPE
     
     def get_argtype(func,key):
